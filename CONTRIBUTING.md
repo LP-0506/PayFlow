@@ -6,4 +6,5 @@
 4. CI must pass (build, tests, scans) before merge.
 5. One review from the other maintainer.
 6. Commit style: `type: short summary` (feat, fix, docs, test, chore).
-7. Never commit secrets. Use environment variables.
+7. A design change updates the diagrams in [docs/uml/](docs/uml/) and the matching ADR in the same pull request.
+8. Never commit secrets. Use environment variables.

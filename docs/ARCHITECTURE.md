@@ -31,6 +31,10 @@ Client
                        reconciler (scheduled): compares orders vs payment ledger
 ```
 
+## Diagrams
+
+The full Mermaid set lives in [uml/](uml/README.md): [component](uml/component.md), [happy-path sequence](uml/sequence-happy-path.md), [duplicate-request sequence](uml/sequence-duplicate-request.md), [failure and DLQ sequence](uml/sequence-failure-dlq.md), [order state machine](uml/order-state.md), [data model](uml/data-model.md) and [deployment](uml/deployment.md). Update them in the same change as any design change.
+
 ## Services
 
 | Service | Responsibility | Owner |
@@ -64,9 +68,11 @@ A scheduled job lists orders in `PENDING` past a threshold, and ledger rows with
 - `outbox(id, aggregate_id, topic, payload, created_at, published_at)`
 - `payments(id, order_id UNIQUE, gateway_ref, status, attempts, last_error, created_at)`
 
+Diagram: [uml/data-model.md](uml/data-model.md).
+
 ## Order state machine
 
-`PENDING -> PAID`, `PENDING -> FAILED` (permanent error), `PENDING -> NEEDS_REVIEW` (retries exhausted). Terminal states never change except by an explicit, logged manual action.
+`PENDING -> PAID`, `PENDING -> FAILED` (permanent error), `PENDING -> NEEDS_REVIEW` (retries exhausted). Terminal states never change except by an explicit, logged manual action. Diagram: [uml/order-state.md](uml/order-state.md).
 
 ## Delivery semantics
 

@@ -26,8 +26,10 @@ When a payment request times out, the client retries. Without protection, the cu
 
 ## Docs
 
+- [Docs index](docs/README.md) with a suggested reading order
 - [Problem statement](docs/PROBLEM_STATEMENT.md)
 - [Architecture](docs/ARCHITECTURE.md)
+- [UML diagrams](docs/uml/README.md): components, sequences, state machine, data model, deployment
 - [API contract](docs/API.md)
 - [Event schemas](docs/EVENTS.md)
 - [Failure scenarios and test plan](docs/FAILURE_SCENARIOS.md)

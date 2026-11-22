@@ -1,6 +1,6 @@
 # Failure Scenarios and Test Plan
 
-Each scenario becomes an automated test or a chaos script. Write the expected outcome first, then build to it.
+Each scenario becomes an automated test or a chaos script. Write the expected outcome first, then build to it. Scenarios 5-9 follow the flows drawn in [uml/sequence-duplicate-request.md](uml/sequence-duplicate-request.md) and [uml/sequence-failure-dlq.md](uml/sequence-failure-dlq.md).
 
 | # | Scenario | Injected by | Expected outcome |
 |---|---|---|---|
