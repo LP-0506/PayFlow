@@ -74,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Filesystem and config scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -84,7 +84,7 @@ jobs:
       - name: Build image
         run: docker build -t "payflow-ci-scan:${GITHUB_SHA}" "${{ needs.detect-docker.outputs.dockerfile_dir }}"
       - name: Image scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: image
           image-ref: payflow-ci-scan:${{ github.sha }}
