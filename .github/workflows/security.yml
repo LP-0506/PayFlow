@@ -35,59 +35,16 @@ jobs:
         with:
           fail-on-severity: high
 
-  detect-docker:
-    name: Detect Dockerfile
-    runs-on: ubuntu-latest
-    outputs:
-      has_dockerfile: ${{ steps.scan.outputs.has_dockerfile }}
-      dockerfile_dir: ${{ steps.scan.outputs.dockerfile_dir }}
-    steps:
-      - uses: actions/checkout@v5
-      - id: scan
-        shell: bash
-        run: |
-          df=$(find . -path ./.git -prune -o -name 'Dockerfile*' -type f -print -quit)
-          if [ -n "$df" ]; then
-            echo "has_dockerfile=true" >> "$GITHUB_OUTPUT"
-            echo "dockerfile_dir=$(dirname "$df")" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_dockerfile=false" >> "$GITHUB_OUTPUT"
-            echo "dockerfile_dir=." >> "$GITHUB_OUTPUT"
-          fi
-
-  no-dockerfile:
-    name: No Dockerfile yet
-    needs: detect-docker
-    if: needs.detect-docker.outputs.has_dockerfile == 'false'
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "::notice::No Dockerfile in the repository yet. Trivy image and filesystem scans activate when one lands."
-
   trivy:
-    name: Trivy scans
-    needs: detect-docker
-    if: needs.detect-docker.outputs.has_dockerfile == 'true'
+    name: Filesystem vulnerability scan
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
     steps:
       - uses: actions/checkout@v5
-      - name: Filesystem and config scan
-        uses: aquasecurity/trivy-action@0.28.0
+      - uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: fs
           scan-ref: .
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: '1'
-      - name: Build image
-        run: docker build -t "payflow-ci-scan:${GITHUB_SHA}" "${{ needs.detect-docker.outputs.dockerfile_dir }}"
-      - name: Image scan
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: image
-          image-ref: payflow-ci-scan:${{ github.sha }}
+          scanners: vuln,secret
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           exit-code: '1'

@@ -1,0 +1,60 @@
+name: Application containers
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.scan.outputs.services }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: scan
+        name: Discover actual application builds
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          names=set()
+          for name in ('pom.xml','build.gradle','build.gradle.kts'):
+              for path in Path('.').rglob(name):
+                  if not any(x in path.parts for x in ('.git','ops','target','build')):
+                      names.add(str(path.parent))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('services='+json.dumps(sorted(names))+'\n')
+          print('Application build directories:', sorted(names))
+          if not names:
+              print('::notice::No application code exists yet. No application container has been built or accepted.')
+          PY
+  package:
+    needs: discover
+    if: needs.discover.outputs.services != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJSON(needs.discover.outputs.services) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify tests and build real service image
+        env:
+          SERVICE_DIRECTORY: ${{ matrix.directory }}
+        run: bash ops/scripts/package-service.sh "$SERVICE_DIRECTORY" payflow-application:${{ github.sha }}
+      - name: Scan the actual built image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: image
+          image-ref: payflow-application:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'

@@ -7,7 +7,6 @@ cleanup() { kind delete cluster --name "$cluster"; }
 trap cleanup EXIT
 kind create cluster --name "$cluster" --kubeconfig "$KUBECONFIG" --image "$(python3 -c 'import json; print(json.load(open("ops/tests/tools-lock.json"))["node_image"])')" --wait 120s
 kind load docker-image payflow-runtime-fixture:ci --name "$cluster"
-kubectl apply --server-side --dry-run=server -k ops/kubernetes/demo || true
 # Namespace has to exist before server dry-run can validate namespaced resources.
 kubectl apply -f ops/kubernetes/demo/namespace.yml
 kubectl apply --server-side --dry-run=server -k ops/kubernetes/demo
