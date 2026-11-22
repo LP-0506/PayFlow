@@ -1,0 +1,7 @@
+.local/
+.env
+*.log
+__pycache__/
+target/
+build/
+ops/tests/fixture-out/

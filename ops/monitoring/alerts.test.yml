@@ -1,0 +1,22 @@
+rule_files: [alerts.yml]
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'pg_up{instance="db"}'
+        values: '0 0 0 0 0 0'
+      - series: 'payflow_dlq_depth{service="payment-worker"}'
+        values: '1 1 1 1 1 1'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: PostgresUnavailable
+        exp_alerts:
+          - exp_labels: {instance: db, severity: critical}
+            exp_annotations:
+              summary: Postgres exporter cannot reach the database
+              runbook_url: https://github.com/LP-0506/PayFlow/tree/main/docs/ops
+      - eval_time: 3m
+        alertname: PayFlowDeadLetters
+        exp_alerts:
+          - exp_labels: {service: payment-worker, severity: warning}
+            exp_annotations: {summary: Payments require manual DLQ review}

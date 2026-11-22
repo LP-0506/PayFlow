@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: payflow-demo
+resources:
+- ../base
+- namespace.yml
+images:
+- name: payflow/order-service
+  newName: payflow-runtime-fixture
+  newTag: ci
+- name: payflow/payment-worker
+  newName: payflow-runtime-fixture
+  newTag: ci
+- name: payflow/mock-gateway
+  newName: payflow-runtime-fixture
+  newTag: ci
+- name: payflow/reconciler
+  newName: payflow-runtime-fixture
+  newTag: ci
+secretGenerator:
+- name: payflow-runtime
+  literals:
+  - SPRING_DATASOURCE_URL=jdbc:postgresql://fixture.invalid/payflow
+  - SPRING_DATASOURCE_USERNAME=fixture
+  - SPRING_DATASOURCE_PASSWORD=fixture-not-a-credential
+configMapGenerator:
+- name: payflow-runtime
+  behavior: merge
+  literals:
+  - SPRING_KAFKA_BOOTSTRAP_SERVERS=fixture.invalid:9092

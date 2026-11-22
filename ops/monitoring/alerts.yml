@@ -1,0 +1,33 @@
+groups:
+  - name: platform
+    rules:
+      - alert: PostgresUnavailable
+        expr: pg_up == 0
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: Postgres exporter cannot reach the database
+          runbook_url: https://github.com/LP-0506/PayFlow/tree/main/docs/ops
+      - alert: ScrapeTargetDown
+        expr: up == 0
+        for: 2m
+        labels: {severity: warning}
+        annotations:
+          summary: A configured monitoring target is unavailable
+  - name: payflow-contract
+    rules:
+      - alert: PayFlowDeadLetters
+        expr: payflow_dlq_depth > 0
+        for: 2m
+        labels: {severity: warning}
+        annotations: {summary: Payments require manual DLQ review}
+      - alert: PayFlowStuckOrders
+        expr: payflow_pending_oldest_age_seconds > 300
+        for: 5m
+        labels: {severity: warning}
+        annotations: {summary: A pending order exceeded the proposed five-minute objective}
+      - alert: PayFlowReconciliationMismatch
+        expr: payflow_reconciliation_mismatches > 0
+        for: 2m
+        labels: {severity: critical}
+        annotations: {summary: Payment ledger and orders disagree}
