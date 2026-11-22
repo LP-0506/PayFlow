@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Validate application overlay without pretending application images exist
         env:
           ORDER_SERVICE_IMAGE: validation-only/order:unbuilt
@@ -39,7 +39,7 @@ jobs:
           .local/visual-venv/bin/pip install -r ops/tests/visual-requirements.txt
           .local/visual-venv/bin/python ops/tests/capture-dashboard.py
       - name: Preserve dashboard evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: platform-dashboard
           path: .local/evidence/grafana-dashboard.png
@@ -60,8 +60,8 @@ jobs:
     env:
       KUBECONFIG: /tmp/payflow-isolated-kubeconfig
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-java@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
