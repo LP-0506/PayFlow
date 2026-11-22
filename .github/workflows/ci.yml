@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    name: Detect build setup
+    runs-on: ubuntu-latest
+    outputs:
+      build_tool: ${{ steps.scan.outputs.build_tool }}
+      build_dir: ${{ steps.scan.outputs.build_dir }}
+      compose: ${{ steps.scan.outputs.compose }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          pom=$(find . -path ./.git -prune -o -name pom.xml -print -quit)
+          gradle=$(find . -path ./.git -prune -o \( -name build.gradle -o -name build.gradle.kts -o -name gradlew \) -print -quit)
+          if [ -n "$pom" ]; then
+            echo "build_tool=maven" >> "$GITHUB_OUTPUT"
+            echo "build_dir=$(dirname "$pom")" >> "$GITHUB_OUTPUT"
+          elif [ -n "$gradle" ]; then
+            echo "build_tool=gradle" >> "$GITHUB_OUTPUT"
+            echo "build_dir=$(dirname "$gradle")" >> "$GITHUB_OUTPUT"
+          else
+            echo "build_tool=none" >> "$GITHUB_OUTPUT"
+            echo "build_dir=." >> "$GITHUB_OUTPUT"
+          fi
+          if find . -path ./.git -prune -o \( -name docker-compose.yml -o -name docker-compose.yaml -o -name compose.yml -o -name compose.yaml \) -print -quit | grep -q .; then
+            echo "compose=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "compose=no" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Build and test
+    needs: detect
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Nothing to build yet
+        if: needs.detect.outputs.build_tool == 'none'
+        run: echo "::notice::No Maven or Gradle build file in the repository yet. This job starts building and testing for real as soon as application code lands."
+      - uses: actions/setup-java@v5
+        if: needs.detect.outputs.build_tool != 'none'
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: ${{ needs.detect.outputs.build_tool }}
+      - name: Maven verify
+        if: needs.detect.outputs.build_tool == 'maven'
+        working-directory: ${{ needs.detect.outputs.build_dir }}
+        run: |
+          if [ -x ./mvnw ]; then ./mvnw -B verify; else mvn -B verify; fi
+      - name: Gradle build
+        if: needs.detect.outputs.build_tool == 'gradle'
+        working-directory: ${{ needs.detect.outputs.build_dir }}
+        run: |
+          if [ -x ./gradlew ]; then ./gradlew build --no-daemon; else gradle build --no-daemon; fi
+
+  compose-config:
+    name: Validate Compose file
+    needs: detect
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: No Compose file yet
+        if: needs.detect.outputs.compose == 'no'
+        run: echo "::notice::No docker-compose file in the repository yet. Validation activates when one lands."
+      - name: docker compose config
+        if: needs.detect.outputs.compose == 'yes'
+        run: docker compose config -q
