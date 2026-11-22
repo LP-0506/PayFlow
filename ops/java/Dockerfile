@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:22-jre-jammy
 ARG JAR_FILE=target/app.jar
 WORKDIR /app
 COPY --chown=10001:10001 ${JAR_FILE} /app/app.jar
