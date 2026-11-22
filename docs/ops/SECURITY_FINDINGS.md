@@ -1,6 +1,6 @@
 # Upstream image findings
 
-Status: **unresolved, strict Security gate fails**. Do not describe the platform as production-ready or fully security-accepted.
+Status: **known upstream findings, report-only for local development**. Navin selected this policy on 2026-11-22. Application code, repository secrets/dependencies and our own built images remain strictly gated. Do not describe the platform as production-ready or the upstream images as vulnerability-free.
 
 The functional Compose and disposable Kubernetes gates pass. Trivy scans of the exact locked upstream images also find fixed HIGH/CRITICAL issues. Digest pinning makes the evidence repeatable; it does not make an image vulnerability-free.
 
@@ -12,13 +12,13 @@ The functional Compose and disposable Kubernetes gates pass. Trivy scans of the 
 | Grafana 12.4.15 | Embedded Tempo module triggers CVE-2026-21728 and CVE-2026-28377 | Review applicability before proposing any narrow exception. These advisories concern Tempo server query/config behavior, not a demonstrated Grafana exploit. No exception is currently applied. |
 | Postgres exporter 0.21.1 | No fixed HIGH/CRITICAL or secret findings in this scan | Keep scanning the digest as the advisory database changes. |
 
-The security job scans every locked reference, keeps a sanitized JSON findings artifact and fails if any image scan fails. It does not stop reporting after the first image. Raw secret matches and image file contents are not included in that artifact.
+The report-only job scans every locked third-party reference and keeps a sanitized JSON findings artifact. Known vulnerabilities and stock-image secret findings do not fail the workflow. A scanner/download error still fails collection rather than being presented as a clean scan. It does not stop reporting after the first image. Raw secret matches and image file contents are not included in that artifact.
 
 Vendor sources for the two Tempo findings:
 
 - https://grafana.com/security/security-advisories/cve-2026-21728/
 - https://grafana.com/security/security-advisories/cve-2026-28377/
 
-The full image references and their registry provenance are in `ops/compose/images-lock.json`. Current per-commit results and package/fix versions are in the Security workflow's sanitized artifact. Scanner results are a point-in-time report, not proof every flagged code path is reachable. No blanket ignore, skipped vulnerability class or reduced severity threshold was used to make this green.
+The full image references and their registry provenance are in `ops/compose/images-lock.json`. Current per-commit results and package/fix versions are in the Security workflow's sanitized artifact. Scanner results are a point-in-time report, not proof every flagged code path is reachable. No blanket ignore, skipped vulnerability class or reduced severity threshold hides these findings. The accepted difference is explicit reporting instead of blocking on third-party infrastructure images.
 
-A real deployment remains blocked on security acceptance, external environment setup and the actual Java service contracts. A local-only development risk acceptance, if the owner chooses one, is not production approval and must not silently weaken release checks.
+A real deployment remains blocked on a fresh security review, external environment setup and the actual Java service contracts. This local-only development policy is not production approval. Do not carry report-only acceptance into a real release without the owner reviewing the deployment and risk.

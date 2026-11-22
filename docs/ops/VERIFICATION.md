@@ -9,7 +9,7 @@
 | Real isolated rollout/rollback | Java 21 runtime packaging, API-server manifest validation, readiness, failed rollout detection, undo recovery, restricted admission denial | A production deployment, business readiness, cluster-to-database connectivity or broker authentication |
 | Application containers discovery | Whether application build files exist | A build when no build files exist |
 | Application build/image job | Actual Maven/Gradle tests and container scan for each discovered build | All 12 payment failure scenarios unless the application test suite implements them |
-| Security workflow | Configured scanner results for that commit | Branch protection or a permanently secure system |
+| Security workflow | Strict repository/app/own-image checks plus visible report-only upstream infrastructure findings for that commit | Clean upstream images, production risk acceptance, branch protection or a permanently secure system |
 | Alert rule tests | Synthetic input causes the intended alerts | Live payment failures or notification delivery |
 
 The runtime fixture responds with `fixture: true` and has no payment code. Demo Kubernetes credentials are deliberately fake. Do not use either as acceptance evidence for the application.
