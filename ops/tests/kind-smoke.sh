@@ -29,12 +29,14 @@ kubectl -n payflow-demo port-forward service/order-service 18080:8080 > .local/p
 forward=$!
 curl --fail --retry 15 --retry-connrefused --retry-delay 2 http://localhost:18080/actuator/health/readiness
 kill "$forward"; wait "$forward" || true
-# A bad rollout must be detected, then rollout undo must recover the old image.
+# A bad rollout must be detected, then the shipped rollback helper must recover the old image.
+revision=$(kubectl -n payflow-demo get deployment/order-service -o json | python3 -c 'import json,sys; print(json.load(sys.stdin)["metadata"]["annotations"]["deployment.kubernetes.io/revision"])')
+context=$(kubectl config current-context)
 kubectl -n payflow-demo set image deployment/order-service app=payflow-runtime-fixture:missing
 if kubectl -n payflow-demo rollout status deployment/order-service --timeout=25s; then
   echo 'Bad rollout unexpectedly succeeded'; exit 1
 fi
-kubectl -n payflow-demo rollout undo deployment/order-service
+bash ops/scripts/rollback.sh "$context" payflow-demo order-service "$revision" --apply
 kubectl -n payflow-demo rollout status deployment/order-service --timeout=180s
 test "$(kubectl -n payflow-demo get deployment/order-service -o jsonpath='{.spec.template.spec.containers[0].image}')" = payflow-runtime-fixture:ci
 # Denial under restricted Pod Security admission.

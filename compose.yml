@@ -2,14 +2,14 @@ services:
   postgres:
     image: postgres:17.7-bookworm
     environment:
-      POSTGRES_DB: payflow
-      POSTGRES_USER: payflow
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-    secrets: [postgres_password]
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_admin_password
+    secrets: [postgres_admin_password, postgres_password, postgres_monitor_password]
     ports: ["127.0.0.1:5432:5432"]
-    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    volumes: ["postgres-data:/var/lib/postgresql/data", "./ops/postgres/10-roles.sh:/docker-entrypoint-initdb.d/10-roles.sh:ro"]
     healthcheck:
-      test: [CMD-SHELL, "pg_isready -U payflow -d payflow"]
+      test: [CMD-SHELL, "pg_isready -h 127.0.0.1 -U payflow -d payflow"]
       interval: 5s
       timeout: 3s
       retries: 30
@@ -63,9 +63,9 @@ services:
     image: quay.io/prometheuscommunity/postgres-exporter:v0.18.1
     environment:
       DATA_SOURCE_URI: postgres:5432/payflow?sslmode=disable
-      DATA_SOURCE_USER: payflow
-      DATA_SOURCE_PASS_FILE: /run/secrets/postgres_password
-    secrets: [postgres_password]
+      DATA_SOURCE_USER: payflow_monitor
+      DATA_SOURCE_PASS_FILE: /run/secrets/postgres_monitor_password
+    secrets: [postgres_monitor_password]
     depends_on:
       postgres: {condition: service_healthy}
     read_only: true
@@ -105,6 +105,8 @@ services:
     restart: unless-stopped
 secrets:
   postgres_password: {file: .local/secrets/postgres_password}
+  postgres_admin_password: {file: .local/secrets/postgres_admin_password}
+  postgres_monitor_password: {file: .local/secrets/postgres_monitor_password}
   grafana_password: {file: .local/secrets/grafana_password}
 volumes:
   postgres-data:

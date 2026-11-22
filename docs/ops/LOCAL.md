@@ -7,7 +7,7 @@
 | Java process on the host | `localhost:5432/payflow` | `localhost:29092` |
 | Compose service | `postgres:5432/payflow` | `kafka:9092` |
 
-Database/user: `payflow`. The generated password is mounted as a Compose secret. The Kafka KRaft broker has four explicit topics, each with three partitions: `orders.created`, `payments.completed`, `payments.failed`, `payments.dlq`. Auto-creation is off. One broker and replication factor one are intentional **local-only** settings, not high availability.
+Database/application user: `payflow` (not a superuser). A separate bootstrap `postgres` user owns administration; a separate `payflow_monitor` role has `pg_monitor` access for the exporter. The generated password is mounted as a Compose secret. The Kafka KRaft broker has four explicit topics, each with three partitions: `orders.created`, `payments.completed`, `payments.failed`, `payments.dlq`. Auto-creation is off. One broker and replication factor one are intentional **local-only** settings, not high availability.
 
 Local data lives in named volumes. Neither `.local/` nor `.env` is committed. Compose secret files are not encrypted at rest. The initialization script will not overwrite existing passwords. Changing a password file does not rotate an existing PostgreSQL role or an existing Grafana admin account. Change those through the product's supported mechanism, or recreate only a disposable volume.
 
@@ -45,3 +45,5 @@ docker compose -f compose.yml -f ops/compose/apps.yml up -d
 ```
 
 This is a future handoff command, not evidence of current PayFlow service readiness. The base infrastructure starts independently today. There is deliberately no script claiming one charge from 100 requests until a trustworthy gateway ledger endpoint or SQL contract exists. Repeated HTTP 200s alone cannot prove no double charge.
+
+Role initialization runs only on a new PostgreSQL volume. An older development volume created before this layout needs a deliberate role migration or a disposable-volume reset. Never reset a volume with data you need.

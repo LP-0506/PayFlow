@@ -3,7 +3,7 @@
 ## Baseline
 
 - Loopback-only local ports; no public Ingress or cloud resources.
-- PostgreSQL and Grafana credentials are generated locally, not shared defaults.
+- PostgreSQL application, administration and monitoring roles have separate generated credentials. The application role is not a superuser. Grafana also gets its own generated credential.
 - Kafka plaintext and single-node storage are explicitly development-only. A real environment requires private networking, TLS, authentication, topic ACLs and replicated durable storage chosen with the owner.
 - Java containers run as UID/GID 10001, drop capabilities, disallow privilege escalation, use read-only root filesystems and have bounded `/tmp` and memory. No Kubernetes service-account token is mounted.
 - Kubernetes example Deployments do not grant application API permissions. The disposable namespace enforces restricted Pod Security. That enforcement is tested by an actual denied privileged Pod request.

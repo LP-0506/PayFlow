@@ -19,12 +19,31 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
+      - name: Validate application overlay without pretending application images exist
+        env:
+          ORDER_SERVICE_IMAGE: validation-only/order:unbuilt
+          PAYMENT_WORKER_IMAGE: validation-only/worker:unbuilt
+          MOCK_GATEWAY_IMAGE: validation-only/gateway:unbuilt
+          RECONCILER_IMAGE: validation-only/reconciler:unbuilt
+        run: docker compose -f compose.yml -f ops/compose/apps.yml config --quiet
       - name: SQL, Kafka, backup restore and monitoring
         run: bash ops/tests/compose-smoke.sh
       - name: Validate Prometheus and alert behavior
         run: |
           docker run --rm --entrypoint promtool -v "$PWD/ops/monitoring:/etc/prometheus:ro" prom/prometheus:v3.8.0 check config /etc/prometheus/prometheus.yml
           docker run --rm --entrypoint promtool -v "$PWD/ops/monitoring:/tests:ro" -w /tests prom/prometheus:v3.8.0 test rules alerts.test.yml
+      - name: Capture actual provisioned dashboard
+        run: |
+          python3 -m venv .local/visual-venv
+          .local/visual-venv/bin/pip install -r ops/tests/visual-requirements.txt
+          .local/visual-venv/bin/python ops/tests/capture-dashboard.py
+      - name: Preserve dashboard evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: platform-dashboard
+          path: .local/evidence/grafana-dashboard.png
+          retention-days: 7
+          include-hidden-files: true
       - name: Evidence (no secrets)
         if: always()
         run: |

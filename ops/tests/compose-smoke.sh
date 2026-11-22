@@ -5,6 +5,7 @@ python3 ops/scripts/init-local.py
 docker compose config --quiet
 docker compose up -d --wait --wait-timeout 240 postgres kafka postgres-exporter prometheus grafana
 docker compose run --rm topic-init
+test "$(docker compose exec -T postgres psql -U payflow -d payflow -tAc 'SELECT rolsuper FROM pg_roles WHERE rolname = current_user')" = f
 for topic in orders.created payments.completed payments.failed payments.dlq; do
   docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --describe --topic "$topic"
 done
