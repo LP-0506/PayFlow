@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:17.7-bookworm
+    image: postgres:17.12-bookworm@sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
@@ -17,7 +17,7 @@ services:
     security_opt: [no-new-privileges:true]
     mem_limit: 512m
   kafka:
-    image: apache/kafka:3.9.1
+    image: apache/kafka:3.9.2@sha256:05b4616e0702ef2729327705d54ad6b50ea70b271c4b730fabd2320789fb7b02
     hostname: kafka
     environment:
       KAFKA_NODE_ID: 1
@@ -47,7 +47,7 @@ services:
     security_opt: [no-new-privileges:true]
     mem_limit: 1g
   topic-init:
-    image: apache/kafka:3.9.1
+    image: apache/kafka:3.9.2@sha256:05b4616e0702ef2729327705d54ad6b50ea70b271c4b730fabd2320789fb7b02
     depends_on:
       kafka: {condition: service_healthy}
     entrypoint: [/bin/bash, -ec]
@@ -60,7 +60,7 @@ services:
     security_opt: [no-new-privileges:true]
     mem_limit: 512m
   postgres-exporter:
-    image: quay.io/prometheuscommunity/postgres-exporter:v0.18.1
+    image: prometheuscommunity/postgres-exporter:v0.21.1@sha256:3b8e05a84282cd1199ad2fb6c66f362738bf4c68c1547d8f4226a34a7dd6d8d7
     environment:
       DATA_SOURCE_URI: postgres:5432/payflow?sslmode=disable
       DATA_SOURCE_USER: payflow_monitor
@@ -73,7 +73,7 @@ services:
     security_opt: [no-new-privileges:true]
     mem_limit: 128m
   prometheus:
-    image: prom/prometheus:v3.8.0
+    image: prom/prometheus:v3.16.0@sha256:e04987641b57704f408e31f6373ba4138ecf27cb4a165d24aabb6c38fddd0f06
     command: [--config.file=/etc/prometheus/prometheus.yml, --storage.tsdb.retention.time=7d]
     volumes:
       - ./ops/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -86,7 +86,7 @@ services:
     mem_limit: 512m
     restart: unless-stopped
   grafana:
-    image: grafana/grafana:12.3.0
+    image: grafana/grafana:12.3.11@sha256:b6663cf3664f6452cc15bdf2f9e9c2822e6caa6bab85dabeace35cb735669f99
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_password

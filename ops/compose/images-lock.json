@@ -1,0 +1,27 @@
+{
+  "postgres": {
+    "image": "postgres:17.12-bookworm@sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+    "source": "https://hub.docker.com/v2/repositories/postgres/tags/17.12-bookworm",
+    "tag_last_pushed": "2026-11-18T22:13:09.435755Z"
+  },
+  "kafka": {
+    "image": "apache/kafka:3.9.2@sha256:05b4616e0702ef2729327705d54ad6b50ea70b271c4b730fabd2320789fb7b02",
+    "source": "https://hub.docker.com/v2/repositories/apache/kafka/tags/3.9.2",
+    "tag_last_pushed": "2026-02-21T03:16:51.468964Z"
+  },
+  "prometheus": {
+    "image": "prom/prometheus:v3.16.0@sha256:e04987641b57704f408e31f6373ba4138ecf27cb4a165d24aabb6c38fddd0f06",
+    "source": "https://hub.docker.com/v2/repositories/prom/prometheus/tags/v3.16.0",
+    "tag_last_pushed": "2026-11-05T15:45:48.590113Z"
+  },
+  "grafana": {
+    "image": "grafana/grafana:12.3.11@sha256:b6663cf3664f6452cc15bdf2f9e9c2822e6caa6bab85dabeace35cb735669f99",
+    "source": "https://hub.docker.com/v2/repositories/grafana/grafana/tags/12.3.11",
+    "tag_last_pushed": "2026-08-18T12:04:48.413168Z"
+  },
+  "exporter": {
+    "image": "prometheuscommunity/postgres-exporter:v0.21.1@sha256:3b8e05a84282cd1199ad2fb6c66f362738bf4c68c1547d8f4226a34a7dd6d8d7",
+    "source": "https://hub.docker.com/v2/repositories/prometheuscommunity/postgres-exporter/tags/v0.21.1",
+    "tag_last_pushed": "2026-11-18T17:01:33.350255Z"
+  }
+}

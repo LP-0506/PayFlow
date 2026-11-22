@@ -48,3 +48,27 @@ jobs:
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           exit-code: '1'
+
+  infrastructure-images:
+    name: Scan locked infrastructure images
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: List actual infrastructure image references
+        id: images
+        run: docker compose config --images | sort -u > /tmp/payflow-images.txt
+      - name: Install current pinned Trivy action
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: postgres:17.12-bookworm@sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+          skip-dirs: .local
+      - name: Scan every exact locked image (fixed HIGH/CRITICAL block)
+        run: |
+          while IFS= read -r image; do
+            trivy image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 "$image"
+          done < /tmp/payflow-images.txt

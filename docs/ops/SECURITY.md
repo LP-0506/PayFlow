@@ -11,7 +11,7 @@
 - GitHub Actions defaults to read-only repository permissions. The platform tests need no repository secrets or existing cluster credentials. No deployment uses `pull_request_target` to execute PR code with secrets.
 - Trivy scans filesystem dependencies and actual application images when builds exist. Gitleaks scans history. Dependency review guards PRs once the owner enables its prerequisite. CodeQL waits for real application Java, not the runtime fixture.
 
-Images use explicit version tags in the development stack. Tags can move. Resolve and pin reviewed registry digests for releases, keep their provenance and scan the exact release images. A passing scan is a point-in-time check, not a guarantee against unknown vulnerabilities.
+Development infrastructure uses reviewed explicit tags plus registry digests, recorded in `ops/compose/images-lock.json`. Security CI scans those exact references. The Java runtime base follows its Java 21 patch tag and its built image is scanned in acceptance; real service releases must resolve and record their final image digests. A passing scan is a point-in-time check, not a guarantee against unknown vulnerabilities.
 
 ## Owner-only GitHub settings
 
@@ -25,3 +25,7 @@ Navin has collaborator push permission, not admin permission. These are not sile
 ## What still needs a deployment choice
 
 A production network policy depends on the actual database/broker addresses, DNS and observability destination. A blanket allow-all is not hardening; a speculative deny-all can break the application. Define egress allowlists, namespace isolation, ingress/TLS, broker ACLs, secret management, backups, storage class, availability requirements and resource budgets for the selected environment. None of those choices are falsely described as production-ready here.
+
+## Dependency update policy
+
+Updates are grouped weekly per active ecosystem, capped at one open version-update PR per ecosystem. Docker major upgrades are excluded: Java stays on the agreed 21 LTS runtime and PostgreSQL/Kafka/Grafana major migrations require their own compatibility and data-migration review. Security alerts still need review; do not assume version-update grouping is an incident response process. Maven/Gradle update entries must be added for the actual build directories when her code lands. Empty manifest entries were removed to stop predictable failed update jobs while no application exists. Dependency review and image scanning remain in place.

@@ -2,8 +2,20 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 : "${KUBECONFIG:?Use an isolated temporary kubeconfig}"
+[[ "$KUBECONFIG" != *:* ]] || { echo 'Pass one isolated kubeconfig path'; exit 2; }
+[ ! -s "$KUBECONFIG" ] || { echo 'Refusing an existing nonempty kubeconfig'; exit 2; }
+source ops/scripts/require-local-docker.sh
 cluster="payflow-${GITHUB_RUN_ID:-local}"
-cleanup() { kind delete cluster --name "$cluster"; }
+cleanup() {
+  status=$?
+  trap - EXIT
+  if [ "$status" -ne 0 ]; then
+    kubectl -n payflow-demo get pods,deployments,events -o wide || true
+    kubectl -n payflow-demo logs -l app.kubernetes.io/part-of=payflow --all-containers --tail=100 || true
+  fi
+  kind delete cluster --name "$cluster" || exit 1
+  exit "$status"
+}
 trap cleanup EXIT
 kind create cluster --name "$cluster" --kubeconfig "$KUBECONFIG" --image "$(python3 -c 'import json; print(json.load(open("ops/tests/tools-lock.json"))["node_image"])')" --wait 120s
 kind load docker-image payflow-runtime-fixture:ci --name "$cluster"

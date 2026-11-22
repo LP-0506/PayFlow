@@ -30,8 +30,9 @@ jobs:
         run: bash ops/tests/compose-smoke.sh
       - name: Validate Prometheus and alert behavior
         run: |
-          docker run --rm --entrypoint promtool -v "$PWD/ops/monitoring:/etc/prometheus:ro" prom/prometheus:v3.8.0 check config /etc/prometheus/prometheus.yml
-          docker run --rm --entrypoint promtool -v "$PWD/ops/monitoring:/tests:ro" -w /tests prom/prometheus:v3.8.0 test rules alerts.test.yml
+          image=$(docker compose config --format json | python3 -c 'import json,sys; print(json.load(sys.stdin)["services"]["prometheus"]["image"])')
+          docker run --rm --entrypoint promtool -v "$PWD/ops/monitoring:/etc/prometheus:ro" "$image" check config /etc/prometheus/prometheus.yml
+          docker run --rm --entrypoint promtool -v "$PWD/ops/monitoring:/tests:ro" -w /tests "$image" test rules alerts.test.yml
       - name: Capture actual provisioned dashboard
         run: |
           python3 -m venv .local/visual-venv
@@ -69,6 +70,14 @@ jobs:
           bash ops/tests/build-fixture.sh
           docker build --file ops/java/Dockerfile --build-arg JAR_FILE=ops/tests/fixture-out/runtime.jar --tag payflow-runtime-fixture:ci .
           test "$(docker image inspect payflow-runtime-fixture:ci --format '{{.Config.User}}')" = 10001:10001
+      - name: Scan the actual runtime fixture image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: payflow-runtime-fixture:ci
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
       - name: Install checksum-verified kind
         run: |
           python3 ops/tests/install-kind.py
