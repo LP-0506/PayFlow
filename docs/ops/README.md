@@ -7,6 +7,7 @@ The platform can run without the Java services. Application delivery remains an 
 - [Monitoring and incident response](RUNBOOKS.md)
 - [Security and owner setup](SECURITY.md)
 - [Verification boundaries](VERIFICATION.md)
+- [Known upstream image findings and development policy](SECURITY_FINDINGS.md)
 
 ## Quick start
 
