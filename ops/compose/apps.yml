@@ -1,0 +1,153 @@
+services:
+  order-service:
+    image: ${ORDER_SERVICE_IMAGE:?Set ORDER_SERVICE_IMAGE to a real built application
+      image}
+    environment:
+      SERVER_PORT: '8080'
+      SPRING_APPLICATION_NAME: order-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/payflow
+      SPRING_DATASOURCE_USERNAME: payflow
+      SPRING_CONFIG_IMPORT: configtree:/run/secrets/
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      PAYFLOW_GATEWAY_BASE_URL: http://mock-gateway:8080
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus
+      MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: 'true'
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: never
+      SERVER_SHUTDOWN: graceful
+    secrets:
+    - source: postgres_password
+      target: spring.datasource.password
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      topic-init:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+    user: 10001:10001
+    cap_drop:
+    - ALL
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 512m
+    cpus: 1
+    stop_grace_period: 45s
+    restart: unless-stopped
+    ports:
+    - 127.0.0.1:8080:8080
+  payment-worker:
+    image: ${PAYMENT_WORKER_IMAGE:?Set PAYMENT_WORKER_IMAGE to a real built application
+      image}
+    environment:
+      SERVER_PORT: '8080'
+      SPRING_APPLICATION_NAME: payment-worker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/payflow
+      SPRING_DATASOURCE_USERNAME: payflow
+      SPRING_CONFIG_IMPORT: configtree:/run/secrets/
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      PAYFLOW_GATEWAY_BASE_URL: http://mock-gateway:8080
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus
+      MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: 'true'
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: never
+      SERVER_SHUTDOWN: graceful
+    secrets:
+    - source: postgres_password
+      target: spring.datasource.password
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      topic-init:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+    user: 10001:10001
+    cap_drop:
+    - ALL
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 512m
+    cpus: 1
+    stop_grace_period: 45s
+    restart: unless-stopped
+  mock-gateway:
+    image: ${MOCK_GATEWAY_IMAGE:?Set MOCK_GATEWAY_IMAGE to a real built application
+      image}
+    environment:
+      SERVER_PORT: '8080'
+      SPRING_APPLICATION_NAME: mock-gateway
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/payflow
+      SPRING_DATASOURCE_USERNAME: payflow
+      SPRING_CONFIG_IMPORT: configtree:/run/secrets/
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      PAYFLOW_GATEWAY_BASE_URL: http://mock-gateway:8080
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus
+      MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: 'true'
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: never
+      SERVER_SHUTDOWN: graceful
+    secrets:
+    - source: postgres_password
+      target: spring.datasource.password
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      topic-init:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+    user: 10001:10001
+    cap_drop:
+    - ALL
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 512m
+    cpus: 1
+    stop_grace_period: 45s
+    restart: unless-stopped
+  reconciler:
+    image: ${RECONCILER_IMAGE:?Set RECONCILER_IMAGE to a real built application image}
+    environment:
+      SERVER_PORT: '8080'
+      SPRING_APPLICATION_NAME: reconciler
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/payflow
+      SPRING_DATASOURCE_USERNAME: payflow
+      SPRING_CONFIG_IMPORT: configtree:/run/secrets/
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      PAYFLOW_GATEWAY_BASE_URL: http://mock-gateway:8080
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus
+      MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: 'true'
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: never
+      SERVER_SHUTDOWN: graceful
+    secrets:
+    - source: postgres_password
+      target: spring.datasource.password
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      topic-init:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+    user: 10001:10001
+    cap_drop:
+    - ALL
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 512m
+    cpus: 1
+    stop_grace_period: 45s
+    restart: unless-stopped
+  prometheus:
+    volumes:
+    - ./ops/monitoring/prometheus-apps.yml:/etc/prometheus/prometheus.yml:ro

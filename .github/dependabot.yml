@@ -1,22 +1,47 @@
 version: 2
 updates:
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-  - package-ecosystem: maven
-    directory: /
-    schedule:
-      interval: weekly
-  - package-ecosystem: gradle
-    directory: /
-    schedule:
-      interval: weekly
-  - package-ecosystem: docker
-    directory: /
-    schedule:
-      interval: weekly
-  - package-ecosystem: docker-compose
-    directory: /
-    schedule:
-      interval: weekly
+- package-ecosystem: github-actions
+  directory: /
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 1
+  groups:
+    weekly-github-actions:
+      patterns:
+      - '*'
+- package-ecosystem: maven
+  directory: /
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 1
+  groups:
+    weekly-maven:
+      patterns:
+      - '*'
+- package-ecosystem: gradle
+  directory: /
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 1
+  groups:
+    weekly-gradle:
+      patterns:
+      - '*'
+- package-ecosystem: docker
+  directory: /ops/java
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 1
+  groups:
+    weekly-docker:
+      patterns:
+      - '*'
+- package-ecosystem: docker-compose
+  directory: /
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 1
+  groups:
+    weekly-docker-compose:
+      patterns:
+      - '*'

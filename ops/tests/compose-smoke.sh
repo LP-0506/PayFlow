@@ -14,6 +14,7 @@ bash ops/scripts/backup-postgres.sh
 backup=$(find .local/backups -name '*.dump' -print -quit)
 docker compose exec -T postgres psql -U payflow -d payflow -v ON_ERROR_STOP=1 -c 'DROP TABLE ops_probe;'
 cat "$backup" | docker compose exec -T postgres pg_restore -U payflow -d payflow --clean --if-exists --exit-on-error
+printf 'platform-smoke\n' | docker compose exec -T kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka:9092 --topic orders.created
 docker compose restart postgres kafka
 for i in $(seq 1 60); do
   if docker compose exec -T postgres pg_isready -U payflow -d payflow && docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list; then break; fi
@@ -21,7 +22,6 @@ for i in $(seq 1 60); do
 done
 test "$(docker compose exec -T postgres psql -U payflow -d payflow -tAc 'SELECT note FROM ops_probe WHERE id=1')" = durable
 # Producer -> broker disk -> consumer, not merely an open TCP port.
-printf 'platform-smoke\n' | docker compose exec -T kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka:9092 --topic orders.created
 docker compose exec -T kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic orders.created --from-beginning --max-messages 1 --timeout-ms 30000 | grep platform-smoke
 curl --fail --retry 20 --retry-all-errors --retry-delay 3 http://localhost:9090/-/ready
 curl --fail --retry 20 --retry-all-errors --retry-delay 3 http://localhost:3000/api/health

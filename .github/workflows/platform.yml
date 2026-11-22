@@ -2,8 +2,10 @@ name: Platform acceptance
 on:
   push:
     branches: [main]
+    paths: ["ops/**", "compose.yml", ".dockerignore", ".github/workflows/platform.yml"]
   pull_request:
     branches: [main]
+    paths: ["ops/**", "compose.yml", ".dockerignore", ".github/workflows/platform.yml"]
   workflow_dispatch:
 permissions:
   contents: read
