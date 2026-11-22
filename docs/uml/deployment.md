@@ -10,8 +10,8 @@ flowchart TB
         end
 
         subgraph infra["Infrastructure"]
-            pg[("PostgreSQL 16<br/>:5432, volume: pgdata")]
-            kf["Kafka (KRaft)<br/>:9092"]
+            pg[("PostgreSQL 17<br/>:5432, volume: postgres-data")]
+            kf["Kafka (KRaft)<br/>:29092"]
         end
 
         subgraph observability["Observability"]
@@ -31,4 +31,4 @@ flowchart TB
     gf --> pr
 ```
 
-Everything runs locally through `docker compose up -d`; no cloud resources and no spend. Kubernetes manifests come in week 4 and mirror this layout one pod per service. Exact images, ports and credentials live in `compose.yml` and `.env.example` once the platform work lands; this diagram tracks [ARCHITECTURE.md](../ARCHITECTURE.md#platform-and-security).
+Everything runs locally through `docker compose up -d`; no cloud resources and no spend. The infrastructure and observability containers above already run from `compose.yml`; the application containers join it as their images land (see `ops/java/Dockerfile`). Kubernetes manifests under `ops/kubernetes/` mirror this layout one pod per service. Exact images and ports live in `compose.yml`; this diagram tracks [ARCHITECTURE.md](../ARCHITECTURE.md#platform-and-security).
