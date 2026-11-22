@@ -42,6 +42,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
+          version: v0.76.2
           scan-type: fs
           scan-ref: .
           scanners: vuln,secret
@@ -58,17 +59,34 @@ jobs:
       - name: List actual infrastructure image references
         id: images
         run: docker compose config --images | sort -u > /tmp/payflow-images.txt
-      - name: Install current pinned Trivy action
+      - name: Install pinned scanner and verify repository dependencies
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          scan-type: image
-          image-ref: postgres:17.12-alpine3.24@sha256:f9cf3e1f0066f0eb0c48707d864f0ac5941e9ff454a072077d97a4d278d07d73
+          version: v0.76.2
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           exit-code: '1'
-          skip-dirs: .local
-      - name: Scan every exact locked image (fixed HIGH/CRITICAL block)
+      - name: Scan every exact locked image (all findings retained, gate stays strict)
         run: |
+          mkdir -p .local/raw-image-scans
+          status=0
+          index=0
           while IFS= read -r image; do
-            trivy image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 "$image"
+            index=$((index+1))
+            if ! trivy image --severity HIGH,CRITICAL --ignore-unfixed --format json --output ".local/raw-image-scans/$index.json" --exit-code 1 "$image"; then
+              status=1
+            fi
           done < /tmp/payflow-images.txt
+          python3 ops/tests/summarize-image-scans.py
+          exit "$status"
+      - name: Preserve sanitized vulnerability findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: infrastructure-security-findings
+          path: .local/evidence/infrastructure-findings.json
+          retention-days: 14
+          include-hidden-files: true

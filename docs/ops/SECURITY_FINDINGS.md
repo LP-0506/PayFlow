@@ -1,0 +1,24 @@
+# Upstream image findings
+
+Status: **unresolved, strict Security gate fails**. Do not describe the platform as production-ready or fully security-accepted.
+
+The functional Compose and disposable Kubernetes gates pass. Trivy scans of the exact locked upstream images also find fixed HIGH/CRITICAL issues. Digest pinning makes the evidence repeatable; it does not make an image vulnerability-free.
+
+| Image | Findings in the checked digest | Next safe step |
+|---|---|---|
+| PostgreSQL 17.12 Alpine | `libxml2` patch available; bundled `gosu` built with old Go standard library | A reviewed patched derivative or a corrected upstream image. Switching from Debian to Alpine alone did not remove gosu. |
+| Kafka 4.4.0 | Alpine packages and lz4/snappy Java compression dependencies have fixes | Apply reviewed OS/library patch versions and re-run real Kafka round trips with each compression codec, or consume a patched upstream release. |
+| Prometheus 3.16.0 | `golang.org/x/net` 0.61.0 is flagged; 0.62.0 fixes CVE-2026-78661 | Updated upstream build or an explicitly maintained rebuild with the patched dependency. |
+| Grafana 12.4.15 | Embedded Tempo module triggers CVE-2026-21728 and CVE-2026-28377 | Review applicability before proposing any narrow exception. These advisories concern Tempo server query/config behavior, not a demonstrated Grafana exploit. No exception is currently applied. |
+| Postgres exporter 0.21.1 | No fixed HIGH/CRITICAL or secret findings in this scan | Keep scanning the digest as the advisory database changes. |
+
+The security job scans every locked reference, keeps a sanitized JSON findings artifact and fails if any image scan fails. It does not stop reporting after the first image. Raw secret matches and image file contents are not included in that artifact.
+
+Vendor sources for the two Tempo findings:
+
+- https://grafana.com/security/security-advisories/cve-2026-21728/
+- https://grafana.com/security/security-advisories/cve-2026-28377/
+
+The full image references and their registry provenance are in `ops/compose/images-lock.json`. Current per-commit results and package/fix versions are in the Security workflow's sanitized artifact. Scanner results are a point-in-time report, not proof every flagged code path is reachable. No blanket ignore, skipped vulnerability class or reduced severity threshold was used to make this green.
+
+A real deployment remains blocked on security acceptance, external environment setup and the actual Java service contracts. A local-only development risk acceptance, if the owner chooses one, is not production approval and must not silently weaken release checks.
