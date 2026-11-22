@@ -86,7 +86,7 @@ services:
     mem_limit: 512m
     restart: unless-stopped
   grafana:
-    image: grafana/grafana:12.3.11@sha256:b6663cf3664f6452cc15bdf2f9e9c2822e6caa6bab85dabeace35cb735669f99
+    image: grafana/grafana:12.4.15@sha256:2894082f6cf7081aefdc1389265c04000812309208c190d75e8c65f7a30e4b7e
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_password
