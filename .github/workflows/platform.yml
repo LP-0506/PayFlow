@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: SQL, Kafka, backup restore and monitoring
         run: bash ops/tests/compose-smoke.sh
       - name: Validate Prometheus and alert behavior
@@ -40,8 +40,8 @@ jobs:
     env:
       KUBECONFIG: /tmp/payflow-isolated-kubeconfig
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-java@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
