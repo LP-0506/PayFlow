@@ -29,3 +29,5 @@ A production network policy depends on the actual database/broker addresses, DNS
 ## Dependency update policy
 
 Updates are grouped weekly per active ecosystem, capped at one open version-update PR per ecosystem. Docker major upgrades are excluded: Java stays on the agreed 21 LTS runtime and PostgreSQL/Kafka/Grafana major migrations require their own compatibility and data-migration review. Security alerts still need review; do not assume version-update grouping is an incident response process. Maven/Gradle update entries must be added for the actual build directories when her code lands. Empty manifest entries were removed to stop predictable failed update jobs while no application exists. Dependency review and image scanning remain in place.
+
+The Debian PostgreSQL image initially failed the strict scan because its bundled privilege helper carried old Go standard-library findings and a stock test certificate. The selected Alpine variant avoids that helper/certificate rather than suppressing the findings. Broker and dashboard versions are selected and tested independently, not merged as a blind major-upgrade batch.

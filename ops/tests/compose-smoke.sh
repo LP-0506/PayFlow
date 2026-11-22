@@ -11,8 +11,7 @@ for topic in orders.created payments.completed payments.failed payments.dlq; do
 done
 # Real SQL write, backup, delete, restore and restart persistence.
 docker compose exec -T postgres psql -U payflow -d payflow -v ON_ERROR_STOP=1 -c 'CREATE TABLE IF NOT EXISTS ops_probe(id integer PRIMARY KEY, note text); INSERT INTO ops_probe VALUES (1, '\''durable'\'') ON CONFLICT DO NOTHING;'
-bash ops/scripts/backup-postgres.sh
-backup=$(find .local/backups -name '*.dump' -print -quit)
+backup=$(bash ops/scripts/backup-postgres.sh --path-only)
 docker compose exec -T postgres psql -U payflow -d payflow -v ON_ERROR_STOP=1 -c 'DROP TABLE ops_probe;'
 cat "$backup" | docker compose exec -T postgres pg_restore -U payflow -d payflow --clean --if-exists --exit-on-error
 printf 'platform-smoke\n' | docker compose exec -T kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka:9092 --topic orders.created

@@ -6,6 +6,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[2]
 folder = root / '.local' / 'secrets'
 folder.mkdir(parents=True, exist_ok=True, mode=0o700)
+folder.chmod(0o700)
 for name in ('postgres_password', 'postgres_admin_password', 'postgres_monitor_password', 'grafana_password'):
     path = folder / name
     try:

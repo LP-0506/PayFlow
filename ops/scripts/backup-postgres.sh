@@ -10,4 +10,4 @@ trap 'rm -f "${path}.partial"' EXIT
 docker compose exec -T postgres pg_dump -U payflow -d payflow --format=custom > "${path}.partial"
 test -s "${path}.partial"
 mv "${path}.partial" "$path"
-printf 'Backup saved: %s\n' "$path"
+if [ "${1:-}" = --path-only ]; then printf '%s\n' "$path"; else printf 'Backup saved: %s\n' "$path"; fi
